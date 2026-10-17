@@ -267,3 +267,27 @@ export const Auth: CollectionConfig = {
 - Access functions will apply across the application — I.e. if `read` access is disabled on `email`, it will not appear in the Admin panel UI or API.
 - Restricting `read` on the `email` or `username` disables the **Unlock** action in the Admin panel as this function requires access to a user-identifying field.
 - When overriding the `password` field, you may need to include `hidden: true` to prevent duplicate fields being displayed in the Admin panel.
+
+### Custom labels in the collection editor
+
+The email and username controls use the `admin.components.Label` configured on their collection fields. The new-password and confirm-password controls are virtual admin fields, so configure their labels under `auth.admin.components`:
+
+```ts
+export const Users: CollectionConfig = {
+  slug: 'users',
+  auth: {
+    admin: {
+      components: {
+        PasswordLabel: '/components/PasswordLabel#PasswordLabel',
+        ConfirmPasswordLabel:
+          '/components/ConfirmPasswordLabel#ConfirmPasswordLabel',
+      },
+    },
+  },
+  fields: [],
+}
+```
+
+These components receive the standard text-field label props and can be Client or Server Components. Server Components receive `clientField`, `path`, `req`, and the usual server field context. Client Components receive `field` and `path`. Component objects with `clientProps` or `serverProps` are also supported. With no override, Payload renders its standard label. Set an override to `false` to hide the label, and provide an accessible name for the input when using custom labels.
+
+The hooks apply to the collection editor and account view. They do not customize login, create-first-user, or reset-password screens. Password and confirm-password remain virtual form fields; no database columns are added.

@@ -13,40 +13,79 @@ const dirname = path.dirname(filename)
 
 export default buildConfigWithDefaults({
   // ...extend config here
-  collections: [PostsCollection, MediaCollection],
   admin: {
-    importMap: {
-      baseDir: path.resolve(dirname),
-    },
     components: {
       views: {
         FocusIndicatorsView: {
-          path: '/focus-indicators',
           Component: '/components/FocusIndicatorsView.js#FocusIndicatorsView',
+          path: '/focus-indicators',
         },
       },
     },
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
   },
+  collections: [
+    {
+      slug: 'users',
+      auth: {
+        admin: {
+          components: {
+            ConfirmPasswordLabel: '/components/CustomFieldLabel/index.js#CustomFieldLabel',
+            PasswordLabel: '/components/CustomFieldLabelServer/index.js#CustomFieldLabelServer',
+          },
+        },
+        loginWithUsername: { allowEmailLogin: true, requireUsername: false },
+      },
+      fields: [
+        {
+          name: 'email',
+          type: 'email',
+          admin: {
+            components: {
+              Label: '/components/CustomFieldLabelServer/index.js#CustomFieldLabelServer',
+            },
+          },
+        },
+        {
+          name: 'username',
+          type: 'text',
+          admin: {
+            components: { Label: '/components/CustomFieldLabel/index.js#CustomFieldLabel' },
+          },
+        },
+      ],
+    },
+    PostsCollection,
+    MediaCollection,
+  ],
   editor: lexicalEditor({}),
   globals: [
     // ...add more globals here
     MenuGlobal,
   ],
   onInit: async (payload) => {
-    await payload.create({
-      collection: 'users',
-      data: {
-        email: devUser.email,
-        password: devUser.password,
-      },
-    })
+    const users = await payload.count({ collection: 'users' })
+    if (users.totalDocs === 0) {
+      await payload.create({
+        collection: 'users',
+        data: {
+          email: devUser.email,
+          password: devUser.password,
+        },
+      })
+    }
 
-    await payload.create({
-      collection: postsSlug,
-      data: {
-        title: 'example post',
-      },
-    })
+    const posts = await payload.count({ collection: postsSlug })
+    if (posts.totalDocs === 0) {
+      await payload.create({
+        collection: postsSlug,
+        data: {
+          title: 'example post',
+        },
+      })
+    }
   },
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

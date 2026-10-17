@@ -27,7 +27,7 @@ export const getClientSchemaMap = cache(
       cachedClientSchemaMap = new Map()
     }
 
-    const cacheKey = collectionSlug || globalSlug || `widget:${widgetSlug}`
+    const cacheKey = `${collectionSlug || globalSlug || `widget:${widgetSlug}`}:${i18n.language}`
     let cachedEntityClientFieldMap = cachedClientSchemaMap.get(cacheKey)
 
     if (cachedEntityClientFieldMap) {

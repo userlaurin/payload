@@ -21,6 +21,11 @@ export function iterateCollections({
   imports: Imports
 }) {
   for (const collection of collections) {
+    if (collection.auth) {
+      addToImportMap(collection.auth.admin?.components?.PasswordLabel)
+      addToImportMap(collection.auth.admin?.components?.ConfirmPasswordLabel)
+    }
+
     genImportMapIterateFields({
       addToImportMap,
       baseDir,

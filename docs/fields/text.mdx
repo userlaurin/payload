@@ -138,6 +138,8 @@ export const CustomTextFieldClient: TextFieldClientComponent = (props) => {
 
 ### Label
 
+The experimental slug editor also honors `admin.components.Label` on its slug text field. When using `slugField()`, configure the label through its `overrides` callback. It uses the same Client and Server Component props and fallback behavior as an ordinary text field.
+
 #### Server Component
 
 ```tsx

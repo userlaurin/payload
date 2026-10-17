@@ -3,6 +3,7 @@
 import { confirmPassword } from 'payload/shared'
 import React from 'react'
 
+import { RenderCustomComponent } from '../../elements/RenderCustomComponent/index.js'
 import { useField } from '../../forms/useField/index.js'
 import { useTranslation } from '../../providers/Translation/index.js'
 import { FieldError } from '../FieldError/index.js'
@@ -19,7 +20,13 @@ export const ConfirmPasswordField: React.FC<ConfirmPasswordFieldProps> = (props)
   const { disabled: disabledFromProps, path = 'confirm-password' } = props
   const { t } = useTranslation()
 
-  const { disabled, setValue, showError, value } = useField({
+  const {
+    customComponents: { Label } = {},
+    disabled,
+    setValue,
+    showError,
+    value,
+  } = useField({
     path,
     validate: (value, options) => {
       return confirmPassword(value, {
@@ -37,10 +44,15 @@ export const ConfirmPasswordField: React.FC<ConfirmPasswordFieldProps> = (props)
         .filter(Boolean)
         .join(' ')}
     >
-      <FieldLabel
-        htmlFor="field-confirm-password"
-        label={t('authentication:confirmPassword')}
-        required
+      <RenderCustomComponent
+        CustomComponent={Label}
+        Fallback={
+          <FieldLabel
+            htmlFor="field-confirm-password"
+            label={t('authentication:confirmPassword')}
+            required
+          />
+        }
       />
       <div className={`${fieldBaseClass}__wrap`}>
         <FieldError path={path} />

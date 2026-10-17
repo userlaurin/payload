@@ -1,9 +1,9 @@
 'use client'
 
-import type { SanitizedFieldPermissions } from 'payload'
+import type { FieldState, SanitizedFieldPermissions } from 'payload'
 
 import { formatAdminURL, getFieldPermissions } from 'payload/shared'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import type { Props } from './types.js'
@@ -13,7 +13,7 @@ import { EmailAndUsernameFields } from '../../../elements/EmailAndUsername/index
 import { CheckboxField } from '../../../fields/Checkbox/index.js'
 import { ConfirmPasswordField } from '../../../fields/ConfirmPassword/index.js'
 import { PasswordField } from '../../../fields/Password/index.js'
-import { useFormFields, useFormModified } from '../../../forms/Form/context.js'
+import { useForm, useFormFields, useFormModified } from '../../../forms/Form/context.js'
 import { useConfig } from '../../../providers/Config/index.js'
 import { useDocumentInfo } from '../../../providers/DocumentInfo/index.js'
 import { useTranslation } from '../../../providers/Translation/index.js'
@@ -41,6 +41,8 @@ export const Auth: React.FC<Props> = (props) => {
   const [changingPassword, setChangingPassword] = useState(requirePassword)
   const dispatchFields = useFormFields((reducer) => reducer[1])
   const modified = useFormModified()
+  const { getFields } = useForm()
+  const passwordComponents = useRef<Record<string, FieldState['customComponents']>>({})
   const { i18n, t } = useTranslation()
   const { docPermissions, isEditing, isInitializing, isTrashed } = useDocumentInfo()
 
@@ -131,28 +133,42 @@ export const Auth: React.FC<Props> = (props) => {
       if (changingPassword) {
         setValidateBeforeSubmit(true)
 
+        const fields = getFields()
         dispatchFields({
-          type: 'UPDATE',
-          errorMessage: t('validation:required'),
-          path: 'password',
-          valid: false,
-        })
-
-        dispatchFields({
-          type: 'UPDATE',
-          errorMessage: t('validation:required'),
-          path: 'confirm-password',
-          valid: false,
+          type: 'UPDATE_MANY',
+          formState: {
+            'confirm-password': {
+              ...fields['confirm-password'],
+              customComponents:
+                fields['confirm-password']?.customComponents ??
+                passwordComponents.current['confirm-password'],
+              errorMessage: t('validation:required'),
+              valid: false,
+            },
+            password: {
+              ...fields.password,
+              customComponents:
+                fields.password?.customComponents ?? passwordComponents.current.password,
+              errorMessage: t('validation:required'),
+              valid: false,
+            },
+          },
         })
       } else {
         setValidateBeforeSubmit(false)
+        // Keep rendered label slots for reopening, while still removing both secret values.
+        const fields = getFields()
+        passwordComponents.current = {
+          'confirm-password': fields['confirm-password']?.customComponents,
+          password: fields.password?.customComponents,
+        }
         dispatchFields({ type: 'REMOVE', path: 'password' })
         dispatchFields({ type: 'REMOVE', path: 'confirm-password' })
       }
 
       setChangingPassword(changingPassword)
     },
-    [dispatchFields, t, setValidateBeforeSubmit],
+    [dispatchFields, getFields, t, setValidateBeforeSubmit],
   )
 
   const unlock = useCallback(async () => {

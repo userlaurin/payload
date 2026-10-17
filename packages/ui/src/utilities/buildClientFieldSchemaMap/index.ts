@@ -1,27 +1,9 @@
 import type { I18n } from '@payloadcms/translations'
-import type {
-  ClientConfig,
-  ClientField,
-  ClientFieldSchemaMap,
-  FieldSchemaMap,
-  Payload,
-  TextFieldClient,
-} from 'payload'
+import type { ClientConfig, ClientFieldSchemaMap, Field, FieldSchemaMap, Payload } from 'payload'
+
+import { createClientFields } from 'payload'
 
 import { traverseFields } from './traverseFields.js'
-
-const baseAuthFields: ClientField[] = [
-  {
-    name: 'password',
-    type: 'text',
-    required: true,
-  },
-  {
-    name: 'confirm-password',
-    type: 'text',
-    required: true,
-  },
-]
 
 /**
  * Flattens the config fields into a map of field schemas
@@ -48,10 +30,17 @@ export const buildClientFieldSchemaMap = (args: {
       let fieldsToSet = matchedCollection?.fields || []
 
       if (matchedCollection.auth && !matchedCollection.auth.disableLocalStrategy) {
-        ;(baseAuthFields[0] as TextFieldClient).label = i18n.t('general:password')
-        ;(baseAuthFields[1] as TextFieldClient).label = i18n.t('authentication:confirmPassword')
+        const authFields = createClientFields({
+          defaultIDType: payload.config.db.defaultIDType,
+          fields: [
+            schemaMap.get(`${collectionSlug}.password`),
+            schemaMap.get(`${collectionSlug}.confirm-password`),
+          ] as Field[],
+          i18n,
+          importMap: payload.importMap,
+        })
         // Place these fields _last_ to ensure they do not disrupt field paths in the field schema map
-        fieldsToSet = fieldsToSet.concat(baseAuthFields)
+        fieldsToSet = fieldsToSet.concat(authFields)
       }
 
       clientSchemaMap.set(collectionSlug, {

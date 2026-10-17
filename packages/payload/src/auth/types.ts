@@ -1,5 +1,6 @@
 import type { DeepRequired } from 'ts-essentials'
 
+import type { TextField } from '../fields/config/types.js'
 import type { CollectionSlug, GlobalSlug, Payload, TypedUser } from '../index.js'
 import type { PayloadRequest, Where } from '../types/index.js'
 
@@ -214,6 +215,13 @@ export type LoginWithUsernameOptions =
     }
 
 export interface IncomingAuthType {
+  /** Custom labels for the virtual password controls in the collection editor. */
+  admin?: {
+    components?: {
+      ConfirmPasswordLabel?: NonNullable<NonNullable<TextField['admin']>['components']>['Label']
+      PasswordLabel?: NonNullable<NonNullable<TextField['admin']>['components']>['Label']
+    }
+  }
   /**
    * Set cookie options, including secure, sameSite, and domain. For advanced users.
    */
@@ -327,7 +335,11 @@ export type VerifyConfig = {
 }
 
 export interface Auth
-  extends Omit<DeepRequired<IncomingAuthType>, 'forgotPassword' | 'loginWithUsername' | 'verify'> {
+  extends Omit<
+    DeepRequired<IncomingAuthType>,
+    'admin' | 'forgotPassword' | 'loginWithUsername' | 'verify'
+  > {
+  admin?: IncomingAuthType['admin']
   forgotPassword?: {
     expiration?: number
     generateEmailHTML?: GenerateForgotPasswordEmailHTML

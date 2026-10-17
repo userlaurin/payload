@@ -1,24 +1,8 @@
 import type { I18n } from '@payloadcms/translations'
-import type { Field, FieldSchemaMap, SanitizedConfig, TextField } from 'payload'
+import type { Field, FieldSchemaMap, SanitizedConfig } from 'payload'
 
-import { confirmPassword, password } from 'payload/shared'
-
+import { getAuthFieldSchemas } from './getAuthFieldSchemas.js'
 import { traverseFields } from './traverseFields.js'
-
-const baseAuthFields: Field[] = [
-  {
-    name: 'password',
-    type: 'text',
-    required: true,
-    validate: password,
-  },
-  {
-    name: 'confirm-password',
-    type: 'text',
-    required: true,
-    validate: confirmPassword,
-  },
-]
 
 /**
  * Flattens the config fields into a map of field schemas
@@ -43,10 +27,8 @@ export const buildFieldSchemaMap = (args: {
       let fieldsToSet = matchedCollection?.fields || []
 
       if (matchedCollection.auth && !matchedCollection.auth.disableLocalStrategy) {
-        ;(baseAuthFields[0] as TextField).label = i18n.t('general:password')
-        ;(baseAuthFields[1] as TextField).label = i18n.t('authentication:confirmPassword')
         // Place these fields _last_ to ensure they do not disrupt field paths in the field schema map
-        fieldsToSet = fieldsToSet.concat(baseAuthFields)
+        fieldsToSet = fieldsToSet.concat(getAuthFieldSchemas({ auth: matchedCollection.auth }))
       }
 
       schemaMap.set(collectionSlug, {

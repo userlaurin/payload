@@ -5,6 +5,7 @@ import type { SlugFieldClientProps } from 'payload'
 import React, { useCallback, useState } from 'react'
 
 import { Button } from '../../elements/Button/index.js'
+import { RenderCustomComponent } from '../../elements/RenderCustomComponent/index.js'
 import { useForm } from '../../forms/Form/index.js'
 import { useField } from '../../forms/useField/index.js'
 import { useDocumentInfo } from '../../providers/DocumentInfo/index.js'
@@ -18,7 +19,7 @@ import './index.scss'
  * @experimental This component is experimental and may change or be removed in the future. Use at your own risk.
  */
 export const SlugField: React.FC<SlugFieldClientProps> = ({ field, path, useAsSlug }) => {
-  const { admin, label } = field
+  const { admin, label, localized, required } = field
   const { readOnly: readOnlyFromProps } = admin || {}
 
   const { t } = useTranslation()
@@ -27,7 +28,13 @@ export const SlugField: React.FC<SlugFieldClientProps> = ({ field, path, useAsSl
 
   const { slugify } = useServerFunctions()
 
-  const { setValue, showError, value } = useField<string>({ path: path || field.name })
+  const {
+    customComponents: { Label } = {},
+    path: fieldPath,
+    setValue,
+    showError,
+    value,
+  } = useField<string>({ path: path || field.name })
 
   const { getData, getDataByPath } = useForm()
 
@@ -74,7 +81,17 @@ export const SlugField: React.FC<SlugFieldClientProps> = ({ field, path, useAsSl
   return (
     <div className="field-type slug-field-component">
       <div className="label-wrapper">
-        <FieldLabel htmlFor={`field-${path}`} label={label} />
+        <RenderCustomComponent
+          CustomComponent={Label}
+          Fallback={
+            <FieldLabel
+              htmlFor={`field-${fieldPath?.replace(/\./g, '__')}`}
+              label={label}
+              localized={localized}
+              required={required}
+            />
+          }
+        />
       </div>
       <TextInput
         AfterInput={
